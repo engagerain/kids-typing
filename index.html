@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🎈 Typing Fun for Kids!</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', 'Comic Sans MS', cursive, sans-serif;
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 50%, #d4fc79 100%);
+    background-size: 400% 400%;
+    animation: bgShift 12s ease infinite;
+    overflow: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @keyframes bgShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .bg-deco {
+    position: fixed;
+    font-size: 2.5rem;
+    opacity: 0.25;
+    animation: floatUp linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(110vh) rotate(0deg); }
+    100% { transform: translateY(-10vh) rotate(360deg); }
+  }
+
+  .game-container {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 1.2rem;
+    width: min(98vw, 750px);
+  }
+
+  h1 {
+    font-size: clamp(1.6rem, 5.5vw, 3rem);
+    color: #ff6b9d;
+    text-shadow: 2px 2px 0 #fff;
+    margin-bottom: 0.3rem;
+  }
+
+  .word-display {
+    display: flex;
+    justify-content: center;
+    gap: clamp(5px, 1.5vw, 14px);
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .letter-box {
+    width: clamp(44px, 13vw, 90px);
+    height: clamp(52px, 15vw, 100px);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(1.6rem, 6vw, 3.4rem);
+    font-weight: 800;
+    text-transform: uppercase;
+    background: #fff;
+    border: 3px solid #e0e0e0;
+    color: #ccc;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .letter-box.current {
+    border-color: #ffb347;
+    background: #fff8e7;
+    color: #ffb347;
+    transform: scale(1.08);
+    box-shadow: 0 0 20px rgba(255, 179, 71, 0.4);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 179, 71, 0.3); }
+    50%      { box-shadow: 0 0 35px rgba(255, 179, 71, 0.6); }
+  }
+
+  .letter-box.done {
+    border-color: #4ecdc4;
+    background: #e8faf8;
+    color: #2bbb9e;
+    animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes popIn {
+    0%   { transform: scale(0.7); }
+    60%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  .letter-box.wrong {
+    animation: shake 0.4s ease;
+    border-color: #ff6b6b;
+    background: #fff0f0;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-8px); }
+    40%      { transform: translateX(8px); }
+    60%      { transform: translateX(-6px); }
+    80%      { transform: translateX(6px); }
+  }
+
+  .message {
+    font-size: clamp(1.1rem, 3.5vw, 1.8rem);
+    min-height: 2rem;
+    color: #7c5cbf;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+  }
+
+  .hint {
+    font-size: 0.9rem;
+    color: #999;
+    margin-top: 0.3rem;
+  }
+
+  .celebration {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .celebration.active { display: block; }
+
+  .confetti-piece {
+    position: fixed;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+    z-index: 10;
+  }
+
+  @keyframes confettiFall {
+    0%   { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  .star-burst {
+    position: fixed;
+    font-size: 3rem;
+    animation: starPop 1s ease forwards;
+    z-index: 11;
+    pointer-events: none;
+  }
+
+  @keyframes starPop {
+    0%   { transform: scale(0) rotate(0deg); opacity: 1; }
+    50%  { transform: scale(1.5) rotate(180deg); opacity: 1; }
+    100% { transform: scale(0.5) rotate(360deg); opacity: 0; }
+  }
+
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  .screen.active { display: flex; }
+
+  .btn {
+    font-size: 1.4rem;
+    padding: 0.8rem 2.2rem;
+    border: none;
+    border-radius: 50px;
+    color: #fff;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .btn:hover { transform: scale(1.04); }
+  .btn:active { transform: scale(0.96); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #ff6b9d, #ffb347);
+    box-shadow: 0 5px 18px rgba(255, 107, 157, 0.4);
+  }
+  .btn-secondary {
+    background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+    box-shadow: 0 5px 18px rgba(108, 92, 231, 0.3);
+    font-size: 1.1rem;
+    padding: 0.6rem 1.8rem;
+  }
+
+  /* Theme cards */
+  .theme-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .theme-card {
+    flex: 1 1 140px;
+    max-width: 220px;
+    padding: 1rem 0.8rem;
+    border-radius: 20px;
+    border: 4px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .theme-card:hover {
+    transform: scale(1.03);
+    border-color: rgba(255,255,255,0.8);
+  }
+  .theme-card:active { transform: scale(0.97); }
+
+  .theme-card .theme-icon { font-size: 2.5rem; margin-bottom: 0.3rem; }
+  .theme-card .theme-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  }
+  .theme-card .theme-desc {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.85);
+    margin-top: 0.2rem;
+    font-weight: 600;
+  }
+
+  .theme-frozen {
+    background: linear-gradient(135deg, #74b9ff, #a29bfe);
+    box-shadow: 0 5px 16px rgba(116, 185, 255, 0.4);
+  }
+  .theme-zootopia {
+    background: linear-gradient(135deg, #55efc4, #00b894);
+    box-shadow: 0 5px 16px rgba(85, 239, 196, 0.4);
+  }
+  .theme-common {
+    background: linear-gradient(135deg, #fdcb6e, #e17055);
+    box-shadow: 0 5px 16px rgba(253, 203, 110, 0.4);
+  }
+  .theme-princess {
+    background: linear-gradient(135deg, #fd79a8, #e84393);
+    box-shadow: 0 5px 16px rgba(232, 67, 147, 0.4);
+  }
+  .theme-paw {
+    background: linear-gradient(135deg, #0984e3, #6c5ce7);
+    box-shadow: 0 5px 16px rgba(9, 132, 227, 0.4);
+  }
+  .theme-bluey {
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    box-shadow: 0 5px 16px rgba(116, 185, 255, 0.4);
+  }
+
+  .score-bar {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+  }
+  .score-item {
+    background: rgba(255,255,255,0.7);
+    padding: 0.3rem 1rem;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #7c5cbf;
+  }
+
+  .back-btn {
+    position: absolute;
+    top: 0.3rem;
+    left: 0.3rem;
+    font-size: 1.1rem;
+    padding: 0.35rem 0.9rem;
+    border: none;
+    border-radius: 30px;
+    background: rgba(255,255,255,0.6);
+    color: #7c5cbf;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    z-index: 2;
+    touch-action: manipulation;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.9); }
+
+  /* End screen theme cards (smaller) */
+  .end-theme-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: center;
+    width: 100%;
+  }
+  .end-theme-grid .theme-card {
+    flex: 1 1 80px;
+    max-width: 140px;
+    padding: 0.7rem 0.5rem;
+    border-radius: 16px;
+  }
+  .end-theme-grid .theme-card .theme-icon { font-size: 1.8rem; margin-bottom: 0.2rem; }
+  .end-theme-grid .theme-card .theme-name { font-size: 0.95rem; }
+  .end-theme-grid .theme-card .theme-desc { display: none; }
+
+  /* Mobile keyboard input */
+  .mobile-input {
+    position: fixed;
+    top: -100px;
+    left: 0;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    border: none;
+    font-size: 16px; /* prevent iOS zoom */
+  }
+
+  @media (max-width: 480px) {
+    .game-container { padding: 0.8rem; }
+    h1 { margin-bottom: 0.2rem; }
+    .letter-box {
+      width: clamp(38px, 14vw, 60px);
+      height: clamp(46px, 16vw, 68px);
+      border-radius: 12px;
+      border-width: 3px;
+      font-size: clamp(1.4rem, 7vw, 2.4rem);
+    }
+    .score-bar { gap: 0.5rem; }
+    .score-item { font-size: 0.85rem; padding: 0.25rem 0.7rem; }
+    .theme-card { padding: 0.8rem 0.6rem; }
+    .theme-card .theme-icon { font-size: 2rem; }
+    .theme-card .theme-name { font-size: 1rem; }
+    .btn { font-size: 1.2rem; padding: 0.7rem 1.8rem; }
+    .btn-secondary { font-size: 1rem; padding: 0.5rem 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<input type="text" class="mobile-input" id="mobileInput" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+
+<script>
+  const decoEmojis = ['⭐','🌈','🎈','🦋','🌸','🎵','💫','🌻','🍀','🎀'];
+  for (let i = 0; i < 10; i++) {
+    const el = document.createElement('div');
+    el.className = 'bg-deco';
+    el.textContent = decoEmojis[i % decoEmojis.length];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.animationDuration = (8 + Math.random() * 10) + 's';
+    el.style.animationDelay = (-Math.random() * 15) + 's';
+    el.style.fontSize = (1.5 + Math.random() * 2) + 'rem';
+    document.body.appendChild(el);
+  }
+</script>
+
+<div class="game-container">
+  <!-- Start Screen -->
+  <div id="startScreen" class="screen active">
+    <h1>🎈 Typing Fun!</h1>
+    <p style="font-size:1.1rem; color:#7c5cbf; font-weight:600;">Pick a theme to start!</p>
+    <div class="theme-grid" id="startThemeGrid">
+      <div class="theme-card theme-frozen" data-theme="frozen">
+        <div class="theme-icon">❄️👸</div>
+        <div class="theme-name">Frozen</div>
+        <div class="theme-desc">Elsa, Anna & friends</div>
+      </div>
+      <div class="theme-card theme-zootopia" data-theme="zootopia">
+        <div class="theme-icon">🐰🦊</div>
+        <div class="theme-name">Zootopia</div>
+        <div class="theme-desc">Judy, Nick & friends</div>
+      </div>
+      <div class="theme-card theme-princess" data-theme="princess">
+        <div class="theme-icon">👑💖</div>
+        <div class="theme-name">Princess</div>
+        <div class="theme-desc">Disney princesses</div>
+      </div>
+      <div class="theme-card theme-paw" data-theme="paw">
+        <div class="theme-icon">🐕🚒</div>
+        <div class="theme-name">Paw Patrol</div>
+        <div class="theme-desc">Chase, Marshall & pups</div>
+      </div>
+      <div class="theme-card theme-bluey" data-theme="bluey">
+        <div class="theme-icon">🐶💙</div>
+        <div class="theme-name">Bluey</div>
+        <div class="theme-desc">Bluey, Bingo & family</div>
+      </div>
+      <div class="theme-card theme-common" data-theme="common">
+        <div class="theme-icon">📚⭐</div>
+        <div class="theme-name">Common Words</div>
+        <div class="theme-desc">Top 50 most used</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="gameScreen" class="screen">
+    <button class="back-btn" id="backBtn">← Back</button>
+    <h1 id="gameTitle">🎈 Typing Fun!</h1>
+    <div class="score-bar">
+      <div class="score-item" id="themeBadge">📚 Theme</div>
+      <div class="score-item">⭐ <span id="score">0</span></div>
+      <div class="score-item">📝 <span id="wordNum">1</span> / <span id="totalWords">10</span></div>
+    </div>
+    <div class="word-display" id="wordDisplay"></div>
+    <div class="message" id="message">Type the letter that's glowing! ✨</div>
+    <p class="hint" id="tapHint" style="display:none;">Tap here to show keyboard ⌨️</p>
+  </div>
+
+  <!-- End Screen -->
+  <div id="endScreen" class="screen">
+    <h1>🎉 Amazing Job!</h1>
+    <p style="font-size:1.4rem; color:#7c5cbf; font-weight:700;">
+      You typed <span id="finalScore">0</span> words!
+    </p>
+    <div style="font-size:3.5rem; margin:0.5rem 0;">🏆</div>
+    <button class="btn btn-primary" id="playAgainBtn">🔄 Play Again!</button>
+    <p style="font-size:1rem; color:#7c5cbf; font-weight:600; margin-top:0.3rem;">Or pick a different theme:</p>
+    <div class="end-theme-grid" id="endThemeGrid">
+      <div class="theme-card theme-frozen" data-theme="frozen">
+        <div class="theme-icon">❄️👸</div>
+        <div class="theme-name">Frozen</div>
+      </div>
+      <div class="theme-card theme-zootopia" data-theme="zootopia">
+        <div class="theme-icon">🐰🦊</div>
+        <div class="theme-name">Zootopia</div>
+      </div>
+      <div class="theme-card theme-princess" data-theme="princess">
+        <div class="theme-icon">👑💖</div>
+        <div class="theme-name">Princess</div>
+      </div>
+      <div class="theme-card theme-paw" data-theme="paw">
+        <div class="theme-icon">🐕🚒</div>
+        <div class="theme-name">Paw Patrol</div>
+      </div>
+      <div class="theme-card theme-bluey" data-theme="bluey">
+        <div class="theme-icon">🐶💙</div>
+        <div class="theme-name">Bluey</div>
+      </div>
+      <div class="theme-card theme-common" data-theme="common">
+        <div class="theme-icon">📚⭐</div>
+        <div class="theme-name">Common Words</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="celebration" id="celebration"></div>
+
+<script>
+(function() {
+  // ── Word Banks ──
+  const THEMES = {
+    frozen: {
+      name: 'Frozen',
+      icon: '❄️',
+      badge: '❄️ Frozen',
+      title: '❄️ Frozen Typing!',
+      words: [
+        'elsa','anna','olaf','sven','hans','bruni','ryder',
+        'ice','snow','queen','king','magic','frost',
+        'crown','cape','love','song','cold',
+        'wind','hug','power','brave','dream',
+        'storm','flake','glow','heart','door',
+        'rock','troll','free','light','north'
+      ]
+    },
+    zootopia: {
+      name: 'Zootopia',
+      icon: '🐰',
+      badge: '🐰 Zootopia',
+      title: '🐰 Zootopia Typing!',
+      words: [
+        'judy','nick','flash','bogo','yax','bonnie',
+        'fox','bunny','badge','cop','city',
+        'case','clue','chase','run','fast',
+        'paw','tail','roar','howl','hero',
+        'wild','smart','brave','dream','team',
+        'trick','night','park','safe','dash',
+        'jump','kind','cute'
+      ]
+    },
+    princess: {
+      name: 'Princess',
+      icon: '👑',
+      badge: '👑 Princess',
+      title: '👑 Princess Typing!',
+      words: [
+        'ariel','belle','mulan','moana','tiana','merida',
+        'aurora','snow','elena',
+        'prince','castle','crown','magic','dream',
+        'rose','mirror','lamp','wish','dress',
+        'dance','sing','brave','kind','love',
+        'heart','tower','ocean','star','ring',
+        'gown','fairy','spell','charm','kiss'
+      ]
+    },
+    paw: {
+      name: 'Paw Patrol',
+      icon: '🐕',
+      badge: '🐕 Paw Patrol',
+      title: '🐕 Paw Patrol Typing!',
+      words: [
+        'chase','skye','rocky','zuma','rubble','ryder',
+        'rex',
+        'pup','bark','paw','wag','bone',
+        'badge','save','help','team','truck',
+        'tower','rescue','hero','brave','fast',
+        'jet','dig','fly','swim','roll'
+      ]
+    },
+    bluey: {
+      name: 'Bluey',
+      icon: '🐶',
+      badge: '🐶 Bluey',
+      title: '🐶 Bluey Typing!',
+      words: [
+        'bluey','bingo','bandit','chilli','muffin','stripe','socks',
+        'lucky','judo','chloe',
+        'play','game','fun','dance','swim',
+        'park','beach','creek','home','yard',
+        'dad','mum','bark','ball','run',
+        'dream','magic','silly','happy','love'
+      ]
+    },
+    common: {
+      name: 'Common Words',
+      icon: '📚',
+      badge: '📚 Common Words',
+      title: '📚 Common Words!',
+      words: [
+        'the','be','to','of','and','a','in','that','have','i',
+        'it','for','not','on','with','he','as','you','do','at',
+        'this','but','his','by','from','they','we','say','her','she',
+        'or','an','will','my','one','all','would','there','their','what',
+        'so','up','out','if','about','who','get','which','go','me'
+      ]
+    }
+  };
+
+  const ROUND_SIZE = 10;
+  const CELEBRATE_MESSAGES = [
+    "Great job! 🎉", "Awesome! 🌟", "You did it! 🏆",
+    "Super! 💪", "Amazing! ✨", "Fantastic! 🎈",
+    "Wonderful! 🌈", "Perfect! ⭐", "Brilliant! 🎊", "Wow! 🦋"
+  ];
+
+  // ── State ──
+  let selectedTheme = null;
+  let words = [];
+  let wordIndex = 0;
+  let letterIndex = 0;
+  let score = 0;
+  let isPlaying = false;
+  let isCelebrating = false;
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  // ── DOM ──
+  const startScreen   = document.getElementById('startScreen');
+  const gameScreen     = document.getElementById('gameScreen');
+  const endScreen      = document.getElementById('endScreen');
+  const wordDisplay    = document.getElementById('wordDisplay');
+  const messageEl      = document.getElementById('message');
+  const scoreEl        = document.getElementById('score');
+  const wordNumEl      = document.getElementById('wordNum');
+  const totalEl        = document.getElementById('totalWords');
+  const finalScoreEl   = document.getElementById('finalScore');
+  const celebrationEl  = document.getElementById('celebration');
+  const themeBadge     = document.getElementById('themeBadge');
+  const gameTitle      = document.getElementById('gameTitle');
+  const mobileInput    = document.getElementById('mobileInput');
+  const tapHint        = document.getElementById('tapHint');
+
+  // ── Mobile keyboard support ──
+  function focusMobileInput() {
+    if (isMobile && isPlaying) {
+      mobileInput.value = '';
+      mobileInput.focus();
+    }
+  }
+
+  if (isMobile) {
+    tapHint.style.display = 'block';
+    gameScreen.addEventListener('click', focusMobileInput);
+
+    mobileInput.addEventListener('input', (e) => {
+      const val = mobileInput.value;
+      if (val.length > 0) {
+        const ch = val[val.length - 1].toLowerCase();
+        if (ch >= 'a' && ch <= 'z') {
+          processKey(ch);
+        }
+        mobileInput.value = '';
+      }
+    });
+  }
+
+  // ── Theme Selection (click card = start immediately) ──
+  function bindThemeCards(container) {
+    container.querySelectorAll('.theme-card').forEach(card => {
+      card.addEventListener('click', () => {
+        selectedTheme = card.dataset.theme;
+        startGame();
+      });
+    });
+  }
+  bindThemeCards(document.getElementById('startThemeGrid'));
+  bindThemeCards(document.getElementById('endThemeGrid'));
+
+  // ── Speech ──
+  function speak(text, rate = 1, pitch = 1.1) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = rate;
+    u.pitch = pitch;
+    u.lang = 'en-US';
+    window.speechSynthesis.speak(u);
+  }
+
+  function speakLetter(ch) {
+    speak(ch.toLowerCase(), 0.9, 1.1);
+  }
+
+  // ── Celebration Effects ──
+  function showCelebration() {
+    isCelebrating = true;
+    celebrationEl.innerHTML = '';
+    celebrationEl.classList.add('active');
+
+    const colors = ['#ff6b9d','#ffb347','#4ecdc4','#7c5cbf','#ff6b6b','#45b7d1','#96e6a1','#dda0dd'];
+    for (let i = 0; i < 35; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      c.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+      c.style.animationDelay = (Math.random() * 0.5) + 's';
+      c.style.width = (8 + Math.random() * 10) + 'px';
+      c.style.height = (8 + Math.random() * 10) + 'px';
+      c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      celebrationEl.appendChild(c);
+    }
+
+    const starEmojis = ['⭐','🌟','✨','💫','🎉','🎊'];
+    for (let i = 0; i < 6; i++) {
+      const s = document.createElement('div');
+      s.className = 'star-burst';
+      s.textContent = starEmojis[i];
+      s.style.left = (15 + Math.random() * 70) + 'vw';
+      s.style.top = (20 + Math.random() * 40) + 'vh';
+      s.style.animationDelay = (Math.random() * 0.4) + 's';
+      celebrationEl.appendChild(s);
+    }
+
+    setTimeout(() => {
+      celebrationEl.classList.remove('active');
+      celebrationEl.innerHTML = '';
+      isCelebrating = false;
+    }, 2500);
+  }
+
+  // ── Game Logic ──
+  function pickWords() {
+    const bank = THEMES[selectedTheme].words;
+    const shuffled = [...bank].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, ROUND_SIZE);
+  }
+
+  function renderWord() {
+    const word = words[wordIndex];
+    wordDisplay.innerHTML = '';
+    for (let i = 0; i < word.length; i++) {
+      const box = document.createElement('div');
+      box.className = 'letter-box';
+      box.textContent = word[i];
+      box.id = 'lb-' + i;
+      if (i < letterIndex) box.classList.add('done');
+      if (i === letterIndex) box.classList.add('current');
+      wordDisplay.appendChild(box);
+    }
+    wordNumEl.textContent = wordIndex + 1;
+  }
+
+  function showScreen(screen) {
+    [startScreen, gameScreen, endScreen].forEach(s => s.classList.remove('active'));
+    screen.classList.add('active');
+  }
+
+  function startGame() {
+    if (!selectedTheme) return;
+
+    const theme = THEMES[selectedTheme];
+    words = pickWords();
+    wordIndex = 0;
+    letterIndex = 0;
+    score = 0;
+    isPlaying = true;
+    isCelebrating = false;
+    celebrationEl.classList.remove('active');
+    celebrationEl.innerHTML = '';
+    window.speechSynthesis.cancel();
+
+    scoreEl.textContent = '0';
+    totalEl.textContent = ROUND_SIZE;
+    messageEl.textContent = 'Type the letter that\'s glowing! ✨';
+    themeBadge.textContent = theme.badge;
+    gameTitle.textContent = theme.title;
+
+    showScreen(gameScreen);
+    renderWord();
+    setTimeout(() => speak(words[0], 0.8, 1.0), 400);
+    setTimeout(focusMobileInput, 500);
+  }
+
+  function nextWord() {
+    wordIndex++;
+    letterIndex = 0;
+
+    if (wordIndex >= words.length) {
+      endGame();
+      return;
+    }
+
+    renderWord();
+    messageEl.textContent = 'Keep going! 💪';
+    setTimeout(() => speak(words[wordIndex], 0.8, 1.0), 400);
+    setTimeout(focusMobileInput, 500);
+  }
+
+  function endGame() {
+    isPlaying = false;
+    showScreen(endScreen);
+    finalScoreEl.textContent = score;
+    showCelebration();
+    setTimeout(() => speak("Amazing! You typed " + score + " words! Great job!", 0.9, 1.1), 300);
+  }
+
+  function goToStart() {
+    isPlaying = false;
+    isCelebrating = false;
+    window.speechSynthesis.cancel();
+    celebrationEl.classList.remove('active');
+    celebrationEl.innerHTML = '';
+    showScreen(startScreen);
+  }
+
+  function processKey(typed) {
+    if (!isPlaying || isCelebrating) return;
+
+    const word = words[wordIndex];
+    const expected = word[letterIndex];
+
+    if (typed.length !== 1 || typed < 'a' || typed > 'z') return;
+
+    const currentBox = document.getElementById('lb-' + letterIndex);
+
+    if (typed === expected) {
+      currentBox.classList.remove('current');
+      currentBox.classList.add('done');
+      speakLetter(typed);
+
+      letterIndex++;
+
+      if (letterIndex >= word.length) {
+        score++;
+        scoreEl.textContent = score;
+        const msg = CELEBRATE_MESSAGES[Math.floor(Math.random() * CELEBRATE_MESSAGES.length)];
+        messageEl.textContent = msg;
+        showCelebration();
+
+        setTimeout(() => speak(word, 0.8, 1.0), 500);
+        setTimeout(() => speak(msg.replace(/[^\w\s]/g, ''), 0.95, 1.15), 1200);
+        setTimeout(nextWord, 2800);
+      } else {
+        const nextBox = document.getElementById('lb-' + letterIndex);
+        if (nextBox) nextBox.classList.add('current');
+      }
+    } else {
+      currentBox.classList.remove('wrong');
+      void currentBox.offsetWidth;
+      currentBox.classList.add('wrong');
+      messageEl.textContent = 'Try again! Look at the glowing letter 👀';
+      setTimeout(() => {
+        currentBox.classList.remove('wrong');
+        currentBox.classList.add('current');
+      }, 400);
+    }
+  }
+
+  function handleKey(e) {
+    if (!isPlaying || isCelebrating) return;
+    processKey(e.key.toLowerCase());
+  }
+
+  // ── Events ──
+  document.getElementById('playAgainBtn').addEventListener('click', startGame);
+  document.getElementById('backBtn').addEventListener('click', goToStart);
+  document.addEventListener('keydown', handleKey);
+
+  // Warm up speech synthesis
+  if ('speechSynthesis' in window) {
+    const warmup = new SpeechSynthesisUtterance('');
+    warmup.volume = 0;
+    window.speechSynthesis.speak(warmup);
+  }
+})();
+</script>
+
+</body>
+</html>
